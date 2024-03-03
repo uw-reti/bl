@@ -261,7 +261,7 @@ if __name__ == "__main__":
         clad=[]
         
         
-        box = openmc.rectangular_prism(origin=(asm_pitch/4,asm_pitch/4),width=asm_pitch/2, height=asm_pitch/2,
+        box = openmc.model.rectangular_prism(origin=(asm_pitch/4,asm_pitch/4),width=asm_pitch/2, height=asm_pitch/2,
                                        boundary_type='reflective')
 
 
@@ -277,6 +277,7 @@ if __name__ == "__main__":
             clad_region.append(+clad_inner_radius[-1] & -clad_outer_radius[-1] & box)
             
             fuel.append(openmc.Cell(name='fuel'))
+            fuel[-1].temperature=900
             if var_enr and count in drop_pins:
                 fuel[-1].fill = uo2x
             else:
@@ -288,9 +289,11 @@ if __name__ == "__main__":
             count+=1
             
             gap.append(openmc.Cell(name='air gap'))
+            gap[-1].temperature=600
             gap[-1].region = gap_region[-1]
             
             clad.append(openmc.Cell(name='clad'))
+            clad[-1].temperature=600
             clad[-1].fill = zircaloy
             clad[-1].region = clad_region[-1]
         
@@ -338,21 +341,26 @@ if __name__ == "__main__":
             
             if sdm and count>0:
                 aic_cell.append(openmc.Cell(name='aic_region'))
+                aic_cell[-1].temperature=586
                 aic_cell[-1].fill=aic
                 aic_cell[-1].region = aic_region[-1]
                 
                 aic_gap_cell.append(openmc.Cell(name='aic_gap'))
+                aic_gap_cell[-1].temperature=586
                 aic_gap_cell[-1].region=aic_gap_region[-1]
                 
                 ss_cell.append(openmc.Cell(name='ss_region'))
+                ss_cell[-1].temperature=586
                 ss_cell[-1].fill=ss
                 ss_cell[-1].region = ss_region[-1]
             
             wrod_inner.append(openmc.Cell(name="wrod_inner"))
+            wrod_inner[-1].temperature=586
             wrod_inner[-1].fill=moderator
             wrod_inner[-1].region=moderator_region[-1]
             
             wrod.append(openmc.Cell(name="wrod"))
+            wrod[-1].temperature=586
             wrod[-1].fill=zircaloy
             wrod[-1].region=wrod_region[-1]
         
@@ -364,6 +372,7 @@ if __name__ == "__main__":
             water_region = water_region & +clad_outer_radius[j]
         
         coolant = openmc.Cell(name='coolant')
+        coolant.temperature=586
         coolant.fill = water
         coolant.region = water_region
         
