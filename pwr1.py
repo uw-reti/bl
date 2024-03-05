@@ -391,6 +391,7 @@ if __name__ == "__main__":
         settings.batches = 100
         settings.inactive = 10
         settings.particles = 500000
+        settings.temperature = {'method': 'interpolation'}
         settings.export_to_xml()
         
         #Power Tallies
