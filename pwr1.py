@@ -9,12 +9,16 @@ import numpy as np
 import os
 
 def get_w(p0):
+    #returns positions of control rods in terms of pitch p0
     #   -1  -2  -3  -4    -5   -6   -7   -8  -9
     wx=[0,   0,3*p0,5*p0,   0,3*p0,3*p0,6*p0,6*p0]
     wy=[0,3*p0,3*p0,5*p0,6*p0,6*p0,   0,   0,3*p0]
     return wx,wy
 
 def get_pins(p0,p2,f,npins):
+    """returns coordinates of pins given original 17x17 pitch p0, modified pitch p2
+    f is the relative radius of new pin to reference pin
+    npins is number of pins - a few preset options"""
     
     if npins not in [264,280,292,324]:
         raise ValueError
@@ -138,17 +142,18 @@ if __name__ == "__main__":
     
     import openmc
     
-    deplete = False
-    keep_clad = False
-    sdm = False
+    deplete = False #produce a depletion input 
+    keep_clad = False #if set to true, clad thickness is maintained at reference rather than scaled with pin diameter
+    sdm = False #produce a calculation with control rods in
     
         
     if deplete:
-        cases=[324] #264, 324
-        leuplus=True #False
+        cases=[324] #264, 324 - pick one
+        leuplus=True #If true, enrichment is increased.
     
     else:
-        cases=[264,280,292,324,324,324,324]
+        #sweep through all cases. Four 324 cases: regular, variable enrichment, leuplus, variable enrichment & leuplus
+        cases=[264,280,292,324,324,324,324] 
     
     for xxx,npins in enumerate(cases):
 
@@ -157,14 +162,14 @@ if __name__ == "__main__":
         p2 = p0*17/19
         asm_pitch = 21.5
         
-        f=np.sqrt(264/npins)
+        f=np.sqrt(264/npins) #preserve total pin area
             
         var_enr = True if (xxx==len(cases)-1 or xxx==len(cases)-3) and not deplete else False
         leuplus = True if  xxx>=len(cases)-2 else False
         
         pins = get_pins(p0,p2,f,npins)
         
-        #derived manually by printing out powers
+        #derived manually by printing out powers - these are the pins with reduced enrichment in 324 sensitivty case
         drop_pins = [38,39,50,51,58,59,60,61,62,63,84]
         
         
@@ -176,7 +181,7 @@ if __name__ == "__main__":
             fuel_outer=0.4095*f
         
         if deplete:
-            fmat = len(pins)
+            fmat = len(pins) #different fuel material for each pin
         else:
             fmat = 1
         
@@ -405,7 +410,7 @@ if __name__ == "__main__":
         tallies = openmc.Tallies(tallies)
         tallies.export_to_xml()
         
-        if deplete:
+        if deplete: #directly go ahead and perform the calculation
             import openmc.deplete
             model=openmc.Model(geometry=geometry,settings=settings)
             operator=openmc.deplete.CoupledOperator(model,"./chain_endfb71_pwr.xml")
@@ -427,7 +432,7 @@ if __name__ == "__main__":
             plots = openmc.Plots([plot])
             plots.export_to_xml()
             openmc.plot_geometry()
-            #openmc.run()
+            #openmc.run() - could uncomment this line to run the case.
         
         mystr=str(npins)
         if var_enr:
