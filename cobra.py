@@ -436,7 +436,14 @@ subchan_coords=get_subchan_coords(sc)
 cplot(np.zeros(len(pins))+0.5,0.475*f,p0,pins,None,subchan=subchan_coords) #Draws them
 
 pin_pow=3411e6/193.0/npins/4
-
+"""
+note 1/30/26 - I think the factor of 4 is in error here (misapplication of symmetry).
+However, the lines for calculating the power distribution around line 472 have a near-cancelling error 
+where the pin power is used rather than power per meter. The upshot is that everything is run at
+an assumed core thermal power of 3411*3.66/4 = 3121 MWth with corresponding lowered mass flux. 
+Not ideal but everything is all relative so I dont believe this effects the results significantly. 
+Could and should be corrected in future.
+"""
 
 with open("COBRA/INPFILE","w") as IF:
     #1
