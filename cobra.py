@@ -219,7 +219,7 @@ if uprate_case is not None and npins == 264:
     raise ValueError
 
 if uprate_case == "pow":
-    pow_uprate = 1.095 #tune to original reference value
+    pow_uprate = 1.045 #tune to original reference value
     flow_uprate = 1.0
 
 elif uprate_case == 'both':
@@ -574,7 +574,7 @@ with open("COBRA/INPFILE","w") as IF:
  .8125     1 .9375     1\n""")
         
     #12
-    IF.write("{:12.5E}{:12.5E}{:12.5E}{:12.5E}{:12.5E}{:12.5E}\n".format(0.4095/100*2,(0.475-0.418)/100,10400,6552,0.475/100*2,0))
+    IF.write("{:12.5E}{:12.5E}{:12.5E}{:12.5E}{:12.5E}{:12.5E}\n".format(0.4095/100*2*f,(0.475-0.418)/100*f,10400,6552,0.475/100*2*f,0))
     hgap=5e4 #https://www.sciencedirect.com/science/article/pii/S0149197020302353
     IF.write("{:12.5E}{:12.5E}{:12.5E}{:12.5E}{:12.5E}{:12.5E}\n".format(-11,-11,-11,-11,hgap,0.0))
     
