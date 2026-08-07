@@ -13,26 +13,15 @@ import matplotlib as mpl
 mpl.rcParams['figure.dpi'] = 300
 
 
-def chopped_cosine_distribution(x, a, b):
-    """
-    From ChatGPT
-    Chopped cosine distribution with peak value of 1.55.
+def chopped_cosine_distribution(x,a,b):
     
-    Args:
-        x (array-like): Input values to evaluate the distribution at.
-        a (float): Lower bound of the distribution.
-        b (float): Upper bound of the distribution.
-        
-    Returns:
-        array-like: Values of the chopped cosine distribution evaluated at x.
-    """
-    y = np.zeros_like(x)
-    peak = 1.55
-    c = (a + b) / 2.0
-    delta = (b - a) / 2.0
-    mask = (x >= a) & (x <= b)
-    y[mask] = peak * (0.5 * (1.0 + np.cos(np.pi * (x[mask] - c) / delta)))
+    alpha=0.02114275
+    t = alpha + (np.pi-2*alpha)*(x-a)/(b-a)
+    y = np.sin(t)
+    y = y/np.mean(y)
+    
     return y
+
 
 def subchan_center(sc):
     px = np.mean(np.array([s[0] for s in sc]))
@@ -164,8 +153,12 @@ import unittest
 
 class Testing(unittest.TestCase):
     def test_chopped_cosine_distribution(self):
-        self.assertTrue(np.allclose([1.55],chopped_cosine_distribution(np.array([0.5]),0,1)))
-    
+        nax=50
+        test_y=chopped_cosine_distribution((np.arange(nax)+0.5),0,nax)
+        self.assertAlmostEqual(np.max(test_y),1.55,2)
+        self.assertAlmostEqual(np.mean(test_y),1.00,3)
+        
+        
     def test_subchan_center(self):
         s=[[0,0],[1,0],[0,1],[1,1]]
         x,y=subchan_center(s)
@@ -198,7 +191,7 @@ class Testing(unittest.TestCase):
         self.assertEqual(0.5,polygon_area(coords))
     
 T=Testing()
-T.test_chopped_cosine_distribution()
+#T.test_chopped_cosine_distribution()
 T.test_subchan_center()
 #T.test_get_subchan_coords() confirmed visually so no unit test needed
 T.test_distance_between_centers()
@@ -213,19 +206,19 @@ calc_dnb=False #inlet +2K, 95% nominal flow, 112% power and 1.587 radial peaking
 #want to run the following cases:
 #increase raw power of the 'hot' assembly to recover the extra allowable power peaking under same core power
 #case where the power and flow are both uprated in proportional to number of pins to see if MDNBR preserved
-uprate_case = None #None, "pow "and "both"
+uprate_case = None  #None, "pow "and "both"
 
 if uprate_case is not None and npins == 264:
     raise ValueError
 
 if uprate_case == "pow":
-    pow_uprate = 1.045 #tune to original reference value
+    pow_uprate = 1.035 #tune to original reference value
     flow_uprate = 1.0
 
 elif uprate_case == 'both':
-    pow_uprate = npins/264
-    flow_uprate = npins/264 
-
+    pow_uprate = 1.23
+    flow_uprate = 1.23
+    
 elif uprate_case is None:
     pow_uprate = 1.0
     flow_uprate = 1.0
@@ -592,7 +585,7 @@ $                                                                 ISCHEM
     0.     0     0
      0     0     0     0     0
      0     0     3     0     0     0    -1
-""".format("565.3" if not calc_dnb else "567.3",2952*flow_uprate*flow_fac))
+""".format("565.3" if not calc_dnb else "567.3",3800*flow_uprate*flow_fac))
 
 import os
 os.system("cd COBRA && cobra.exe")
@@ -608,7 +601,7 @@ for j,line in enumerate(data):
     
     if "CHANNEL EXIT SUMMARY RESULTS" in line:
         for k in range(j+13,j+13+nchan):
-            T_out.append(float(data[k].split()[3])-293.15)
+            T_out.append(float(data[k].split()[3])-273.15)
     
     if "MDNBR" in line:
         MDNBR=[]
@@ -619,14 +612,14 @@ for j,line in enumerate(data):
         print("MDNBR is "+str(min(MDNBR)))
             
 
+print(np.mean(T_out))
 T_max=np.max(T_out)
 T_min=np.min(T_out)
 print(T_max,T_min)
             
 T_out = np.array(T_out)
-T_out -= 300
+T_out -= 320
 T_out /= 3.0
 
-
 #create a new subchan plot which draws the temperature as heat map and then has white pins over the top
-cplot(T_out,0.475*f,p0,pins,None,subchan=subchan_coords,sc_out=True,colorbar=True,vbounds=[300,303])
+cplot(T_out,0.475*f,p0,pins,None,subchan=subchan_coords,sc_out=True,colorbar=True,vbounds=[320,323])
